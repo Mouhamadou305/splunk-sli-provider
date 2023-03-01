@@ -1,0 +1,29 @@
+apiVersion: skaffold/v2beta23
+kind: Config
+build:
+  local:
+    useBuildkit: true
+  artifacts:
+    - image: keptncontrib/prometheus-service
+      docker:
+        dockerfile: Dockerfile
+# Before executing this, install prometheus-service manually:
+# helm install -n keptn prometheus-service https://github.com/keptn-contrib/prometheus-service/releases/download/0.7.2/prometheus-service-0.7.2.tgz
+deploy:
+  helm:
+    flags:
+      upgrade: ["--reuse-values"]
+    releases:
+      - name: prometheus-service # needs to be the same name as currently used (check via helm ls -n keptn)
+        namespace: keptn # needs to be the same namespace as where the helm-chart is currently deployed
+        # upgradeOnChange: true
+        # recreatePods: false # don't recreate all pods
+        artifactOverrides:
+          image: keptncontrib/prometheus-service
+        imageStrategy:
+          helm: { }
+        overrides:
+          resources:
+            limits:
+              memory: 512Mi
+        chartPath: chart
