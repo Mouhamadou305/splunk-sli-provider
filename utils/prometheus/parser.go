@@ -34,6 +34,7 @@ func LoadYamlConfiguration(yamlContent string) (*Config, error) {
 	return &config, nil
 }
 
+//MK: Warning, I may have to change that
 func toDurationDecoderHook() mapstructure.DecodeHookFunc {
 	return func(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
 		if t != reflect.TypeOf((*model.Duration)(nil)).Elem() {

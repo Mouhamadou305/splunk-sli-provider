@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/kelseyhightower/envconfig"
-	"github.com/keptn/go-utils/pkg/sdk"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/kelseyhightower/envconfig"
+	"github.com/keptn/go-utils/pkg/sdk"
 
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
@@ -19,9 +20,9 @@ import (
 	keptnevents "github.com/keptn/go-utils/pkg/lib"
 	keptnv2 "github.com/keptn/go-utils/pkg/lib/v0_2_0"
 
+	"github.com/Mouhamadou305/splunk-sli-provider/utils"
+	"github.com/Mouhamadou305/splunk-sli-provider/utils/prometheus"
 	"github.com/gobwas/glob"
-	"github.com/keptn-contrib/prometheus-service/utils"
-	"github.com/keptn-contrib/prometheus-service/utils/prometheus"
 	api "github.com/keptn/go-utils/pkg/api/utils"
 	prometheus_model "github.com/prometheus/common/model"
 )
@@ -126,7 +127,7 @@ func (eh ConfigureMonitoringEventHandler) configurePrometheusAndStoreResources(k
 }
 
 func (eh ConfigureMonitoringEventHandler) isPrometheusInstalled(k sdk.IKeptn) bool {
-	k.Logger().Debug("Check if prometheus service in " + env.PrometheusNamespace + " namespace is available")
+	k.Logger().Debug("Check if prometheus service in " + env.SplunkNamespace + " namespace is available")
 	svcList, err := getPrometheusServiceFromK8s()
 	if err != nil {
 		k.Logger().Errorf("Error locating prometheus service in k8s: %v", err)
@@ -134,7 +135,7 @@ func (eh ConfigureMonitoringEventHandler) isPrometheusInstalled(k sdk.IKeptn) bo
 	}
 
 	if len(svcList.Items) > 0 {
-		k.Logger().Debug("Prometheus service in " + env.PrometheusNamespace + " namespace is available")
+		k.Logger().Debug("Prometheus service in " + env.SplunkNamespace + " namespace is available")
 		return true
 	}
 
@@ -142,7 +143,7 @@ func (eh ConfigureMonitoringEventHandler) isPrometheusInstalled(k sdk.IKeptn) bo
 }
 
 func getPrometheusServiceFromK8s() (*v1.ServiceList, error) {
-	svcList, err := utils.ListK8sServicesByLabel(env.PrometheusLabels, env.PrometheusNamespace)
+	svcList, err := utils.ListK8sServicesByLabel(env.SplunkLabels, env.SplunkNamespace)
 	if err != nil {
 		return nil, fmt.Errorf("prometheus service not found: %w", err)
 	}
@@ -188,7 +189,7 @@ func (eh ConfigureMonitoringEventHandler) updatePrometheusConfigMap(k sdk.IKeptn
 		return err
 	}
 
-	cmPrometheus, err := kubeAPI.CoreV1().ConfigMaps(env.PrometheusNamespace).Get(context.TODO(), env.PrometheusConfigMap, metav1.GetOptions{})
+	cmPrometheus, err := kubeAPI.CoreV1().ConfigMaps(env.SplunkNamespace).Get(context.TODO(), env.SplunkConfigMap, metav1.GetOptions{})
 	if err != nil {
 		// Print better error message when role binding is missing
 		g := glob.MustCompile("configmaps * is forbidden: User * cannot get resource * in API group * in the namespace *")
@@ -197,7 +198,7 @@ func (eh ConfigureMonitoringEventHandler) updatePrometheusConfigMap(k sdk.IKeptn
 		}
 		return err
 	}
-	config, err := prometheus.LoadYamlConfiguration(cmPrometheus.Data[env.PrometheusConfigFileName])
+	config, err := prometheus.LoadYamlConfiguration(cmPrometheus.Data[env.SplunkConfigFileName])
 	if err != nil {
 		return err
 	}
@@ -253,8 +254,8 @@ func (eh ConfigureMonitoringEventHandler) updatePrometheusConfigMap(k sdk.IKeptn
 
 	// apply
 	cmPrometheus.Data["alerting_rules.yml"] = string(alertingRulesYAMLString)
-	cmPrometheus.Data[env.PrometheusConfigFileName] = string(updatedConfigYAMLString)
-	_, err = kubeAPI.CoreV1().ConfigMaps(env.PrometheusNamespace).Update(context.TODO(), cmPrometheus, metav1.UpdateOptions{})
+	cmPrometheus.Data[env.SplunkConfigFileName] = string(updatedConfigYAMLString)
+	_, err = kubeAPI.CoreV1().ConfigMaps(env.SplunkNamespace).Update(context.TODO(), cmPrometheus, metav1.UpdateOptions{})
 	if err != nil {
 		return err
 	}

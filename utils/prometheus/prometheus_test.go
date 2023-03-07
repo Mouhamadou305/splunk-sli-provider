@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	prometheusfake "github.com/keptn-contrib/prometheus-service/utils/prometheus/fake"
+	prometheusfake "github.com/Mouhamadou305/splunk-sli-provider/utils/prometheus/fake"
 	prometheusAPI "github.com/prometheus/client_golang/api/prometheus/v1"
 	prometheusModel "github.com/prometheus/common/model"
 )

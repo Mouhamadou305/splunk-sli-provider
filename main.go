@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/keptn-contrib/prometheus-service/eventhandling"
-	"github.com/keptn-contrib/prometheus-service/utils"
+	"github.com/Mouhamadou305/splunk-sli-provider/eventhandling"  //
+	"github.com/Mouhamadou305/splunk-sli-provider/utils"  //
 	"github.com/keptn/go-utils/pkg/sdk"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -24,7 +24,7 @@ var (
 	env utils.EnvConfig
 )
 
-const serviceName = "prometheus-service"
+const serviceName = "splunk-sli-provider"  //
 const envVarLogLevel = "LOG_LEVEL"
 const monitoringTriggeredEvent = keptnevents.ConfigureMonitoringEventType
 const getSliTriggeredEvent = "sh.keptn.event.get-sli.triggered"
@@ -42,7 +42,7 @@ func main() {
 
 	log.Printf("Starting %s", serviceName)
 
-	// Creating an HTTP listener on port 8080 to receive alerts from Prometheus directly
+	// Creating an HTTP listener on port 8080 to receive alerts from Splunk directly
 	http.HandleFunc("/", HTTPGetHandler)
 	go func() {
 		log.Println("Starting alert manager endpoint")
@@ -67,35 +67,35 @@ func main() {
 		sdk.WithTaskHandler(
 			monitoringTriggeredEvent,
 			eventhandling.NewConfigureMonitoringEventHandler(),
-			prometheusTypeFilter),
+			splunkTypeFilter),
 		sdk.WithTaskHandler(
 			getSliTriggeredEvent,
 			eventhandling.NewGetSliEventHandler(*kubeClient),
-			prometheusSLIProviderFilter),
+			splunkSLIProviderFilter),
 		sdk.WithLogger(logrus.New()),
 	).Start())
 }
 
-// prometheusSLIProviderFilter filters get-sli.triggered events for Prometheus
-func prometheusSLIProviderFilter(keptnHandle sdk.IKeptn, event sdk.KeptnEvent) bool {
+// splunkSLIProviderFilter filters get-sli.triggered events for Splunk
+func splunkSLIProviderFilter(keptnHandle sdk.IKeptn, event sdk.KeptnEvent) bool {
 	data := &keptnv2.GetSLITriggeredEventData{}
 	if err := keptnv2.Decode(event.Data, data); err != nil {
 		keptnHandle.Logger().Errorf("Could not parse get-sli.triggered event: %s", err.Error())
 		return false
 	}
 
-	return data.GetSLI.SLIProvider == "prometheus"
+	return data.GetSLI.SLIProvider == "splunk"
 }
 
-// prometheusTypeFilter filters monitoring.configure events for Prometheus
-func prometheusTypeFilter(keptnHandle sdk.IKeptn, event sdk.KeptnEvent) bool {
+// splunkTypeFilter filters monitoring.configure events for Splunk
+func splunkTypeFilter(keptnHandle sdk.IKeptn, event sdk.KeptnEvent) bool {
 	data := &keptnevents.ConfigureMonitoringEventData{}
 	if err := keptnv2.Decode(event.Data, data); err != nil {
 		keptnHandle.Logger().Errorf("Could not parse monitoring.configure event: %s", err.Error())
 		return false
 	}
 
-	return data.Type == "prometheus"
+	return data.Type == "splunk"
 }
 
 // HTTPGetHandler will handle all requests for '/health' and '/ready'
