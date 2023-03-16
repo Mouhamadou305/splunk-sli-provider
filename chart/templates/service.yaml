@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "prometheus-service.fullname" . }}
+  name: {{ include "splunk-sli-provider.fullname" . }}
   labels:
-    {{- include "prometheus-service.labels" . | nindent 4 }}
+    {{- include "splunk-sli-provider.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "prometheus-service.selectorLabels" . | nindent 4 }}
+    {{- include "splunk-sli-provider.selectorLabels" . | nindent 4 }}

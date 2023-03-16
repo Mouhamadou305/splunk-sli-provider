@@ -5,9 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os/exec"
+	"strconv"
 	"strings"
 
-	"github.com/Mouhamadou305/splunk-sli-provider/utils/prometheus"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/keptn/go-utils/pkg/api/models"
 	api "github.com/keptn/go-utils/pkg/api/utils"
@@ -38,7 +39,6 @@ func NewGetSliEventHandler(kubeClient kubernetes.Clientset) *GetSliEventHandler 
 type splunkCredentials struct {
 	Host     string `json:"host" yaml:"host"`
 	Token	 string `json:"token" yaml:"token"`
-	Tenant 	 string `json:"tenant" yaml:"tenant"`
 }
 
 var env utils.EnvConfig
@@ -71,30 +71,14 @@ func (eh GetSliEventHandler) Execute(k sdk.IKeptn, event sdk.KeptnEvent) (interf
 		deployment = deploymentLabel
 	}
 
-	// create a new Prometheus Handler
-	splunkProvider, err := prometheus.NewSplunkProvider(
-		splunkCreds.Host,
-		splunkCreds.Tenant,
-		splunkCreds.Token,
-		&eventData.EventData,
-		deployment,
-		eventData.Labels,
-		eventData.GetSLI.CustomFilters,
-	)
-
 	// get SLI queries (from SLI.yaml)
 	projectCustomQueries, err := getCustomQueries(k.GetResourceHandler(), eventData.Project, eventData.Stage, eventData.Service)
 	if err != nil {
 		return nil, &sdk.Error{Err: err, StatusType: keptnv2.StatusErrored, ResultType: keptnv2.ResultFailed, Message: fmt.Sprintf("unable to retrieve custom queries for project %s: %e", eventData.Project, err)}
 	}
 
-	// only apply queries if they contain anything
-	if projectCustomQueries != nil {
-		splunkProvider.CustomQueries = projectCustomQueries
-	}
-
 	// retrieve metrics from splunk
-	sliResults := retrieveMetrics(splunkProvider, eventData)
+	sliResults := retrieveMetrics(splunkCreds, deployment, projectCustomQueries, eventData)
 
 	// If we hand any problem retrieving an SLI value, we set the result of the overall .finished event
 	// to Warning, if all fail ResultFailed is set for the event
@@ -139,14 +123,28 @@ func (eh GetSliEventHandler) Execute(k sdk.IKeptn, event sdk.KeptnEvent) (interf
 	return getSliFinishedEventData, nil
 }
 
-func retrieveMetrics(splunkProvider *prometheus.SplunkProvider, eventData *keptnv2.GetSLITriggeredEventData) []*keptnv2.SLIResult {
+func retrieveMetrics(splunkCreds *splunkCredentials, deployment string, projectCustomQueries map[string] string, eventData *keptnv2.GetSLITriggeredEventData) []*keptnv2.SLIResult {
 	log.Printf("Retrieving Prometheus metrics")
 
 	var sliResults []*keptnv2.SLIResult
 
 	for _, indicator := range eventData.GetSLI.Indicators {
 		log.Println("retrieveMetrics: Fetching indicator: " + indicator)
-		sliValue, err := splunkProvider.GetSLI(indicator, eventData.GetSLI.Start, eventData.GetSLI.End)
+
+		cmd := exec.Command("python", "-c", "import splunk; "+
+		"sp= splunk.SplunkProvider(project="+eventData.Project+
+								",stage="+eventData.Stage+
+								",service="+eventData.Service+
+								", deploymentType="+deployment+
+								", labels="+getMapContent(eventData.Labels)+
+								", customQueries="+getMapContent(projectCustomQueries)+
+								", host="+splunkCreds.Host+
+								", token="+splunkCreds.Token+");"+
+		"print(sp.get_sli("+indicator+", "+ eventData.GetSLI.Start+","+ eventData.GetSLI.End+"))")
+		
+		out, err := cmd.CombinedOutput()
+		sliValue, _:= strconv.ParseFloat(string(out), 8)
+
 		if err != nil {
 			sliResults = append(sliResults, &keptnv2.SLIResult{
 				Metric:  indicator,
@@ -164,6 +162,15 @@ func retrieveMetrics(splunkProvider *prometheus.SplunkProvider, eventData *keptn
 	}
 
 	return sliResults
+}
+
+func getMapContent(mp map[string] string) string{
+	dictn :="{"
+	for key, element := range mp {
+		dictn= dictn+"\""+key+"\""+" : "+"\""+element+"\""+","
+	}
+	dictn=strings.TrimSuffix(dictn, ",")+"}"
+	return dictn
 }
 
 func getCustomQueries(resourceHandler sdk.ResourceHandler, project string, stage string, service string) (map[string]string, error) {
@@ -198,13 +205,11 @@ func getSplunkAPIURL(project string, kubeClient v1.CoreV1Interface) (*splunkCred
 	// Example: keptn create secret splunk-credentials-<project> --scope="keptn-splunk-sli-provider" --from-literal="SPLUNK_HOST=$SPLUNK_HOST"
 	splunkHost, errHost := utils.ReadK8sSecretAsString(env.PodNamespace, secretName, "SPLUNK_HOST")
 	splunkToken, errToken := utils.ReadK8sSecretAsString(env.PodNamespace, secretName, "SPLUNK_TOKEN")
-	splunkTenant, errTenant := utils.ReadK8sSecretAsString(env.PodNamespace, secretName, "SPLUNK_TENANT")
 
-	if errHost == nil && errTenant == nil && errToken == nil{
+	if errHost == nil && errToken == nil{
 		// found! using it
 		pc.Host = strings.Replace(splunkHost, " ", "", -1)
 		pc.Token = splunkToken
-		pc.Tenant = splunkTenant
 	} else {
 		// deprecated: try to use legacy approach
 		err = yaml.Unmarshal(secret.Data["splunk-credentials"], &pc)

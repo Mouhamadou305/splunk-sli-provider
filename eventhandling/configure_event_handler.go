@@ -21,7 +21,7 @@ import (
 	keptnv2 "github.com/keptn/go-utils/pkg/lib/v0_2_0"
 
 	"github.com/Mouhamadou305/splunk-sli-provider/utils"
-	"github.com/Mouhamadou305/splunk-sli-provider/utils/prometheus"
+	"github.com/Mouhamadou305/splunk-sli-provider/utils/splunk"
 	"github.com/gobwas/glob"
 	api "github.com/keptn/go-utils/pkg/api/utils"
 	prometheus_model "github.com/prometheus/common/model"

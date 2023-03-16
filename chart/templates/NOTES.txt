@@ -2,5 +2,5 @@ Thanks for deploying Keptn's prometheus-service!
 
 You can find more information on the following pages:
 
-* https://github.com/keptn-contrib/prometheus-service
+* https://github.com/Mouhamadou305/splunk-sli-provider
 * https://keptn.sh/docs/0.15.x/monitoring/prometheus/install/

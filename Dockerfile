@@ -7,7 +7,7 @@ RUN apk add --no-cache gcc libc-dev git
 ARG version=develop
 
 # Copy local code to the container image.
-WORKDIR /go/src/github.com/keptn-contrib/prometheus-service
+WORKDIR /go/src/github.com/Mouhamadou305/splunk-sli-provider
 
 # Force the go compiler to use modules
 ENV GO111MODULE=on
@@ -29,7 +29,7 @@ ARG SKAFFOLD_GO_GCFLAGS
 
 # Build the command inside the container.
 # (You may fetch or manage dependencies here, either manually or with a tool like "godep".)
-RUN GOOS=linux go build -ldflags '-linkmode=external' -gcflags="${SKAFFOLD_GO_GCFLAGS}" -v -o prometheus-service
+RUN GOOS=linux go build -ldflags '-linkmode=external' -gcflags="${SKAFFOLD_GO_GCFLAGS}" -v -o splunk-sli-provider
 
 # Use a Docker multi-stage build to create a lean production image.
 # https://docs.docker.com/develop/develop-images/multistage-build/#use-multi-stage-builds
@@ -48,11 +48,22 @@ ENV version $version
 ENV env=production
 ARG debugBuild
 
+# Install python/pip
+ENV PYTHONUNBUFFERED=1
+RUN apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python
+RUN python3 -m ensurepip
+RUN pip3 install --no-cache --upgrade pip setuptools
+
+COPY splunk.py /
+COPY requirements.txt /
+
+RUN pip install --no-cache-dir -r requirements.txt
+
 # Copy the binary to the production image from the builder stage.
-COPY --from=builder /go/src/github.com/keptn-contrib/prometheus-service/prometheus-service /prometheus-service
+COPY --from=builder /go/src/github.com/keptn-contrib/splunk-sli-provider/splunk-sli-provider /splunk-sli-provider
 
 # required for external tools to detect this as a go binary
 ENV GOTRACEBACK=all
 
 # Run the web service on container startup.
-CMD ["/prometheus-service"]
+CMD ["/splunk-sli-provider"]

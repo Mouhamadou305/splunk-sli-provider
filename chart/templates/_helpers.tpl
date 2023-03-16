@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "prometheus-service.name" -}}
+{{- define "splunk-sli-provider.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "prometheus-service.fullname" -}}
+{{- define "splunk-sli-provider.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "prometheus-service.chart" -}}
+{{- define "splunk-sli-provider.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "prometheus-service.labels" -}}
-helm.sh/chart: {{ include "prometheus-service.chart" . }}
-{{ include "prometheus-service.selectorLabels" . }}
+{{- define "splunk-sli-provider.labels" -}}
+helm.sh/chart: {{ include "splunk-sli-provider.chart" . }}
+{{ include "splunk-sli-provider.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,23 +45,23 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "prometheus-service.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "prometheus-service.name" . }}
+{{- define "splunk-sli-provider.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "splunk-sli-provider.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "prometheus-service.serviceAccountName" -}}
-keptn-prometheus-service
+{{- define "splunk-sli-provider.serviceAccountName" -}}
+keptn-splunk-sli-provider
 {{- end }}
 
 
 {{/*
 Helper functions for auto detecting Prometheus namespace
 */}}
-{{- define "prometheus-service.namespace" -}}
+{{- define "splunk-sli-provider.namespace" -}}
     {{- /* Check if autodetect is set */ -}}
     {{- if and (.Values.prometheus.autodetect) (eq .Values.prometheus.namespace "") }}
         {{- $detectedPrometheusServer := list }}
@@ -114,9 +114,9 @@ Helper functions for auto detecting Prometheus alertmanager namespace
     {{- end }}
 {{- end }}
 
-{{- define "prometheus-service.endpoint" }}
+{{- define "splunk-sli-provider.endpoint" }}
      {{- if and (.Values.prometheus.autodetect) (eq .Values.prometheus.endpoint "") }}
-        {{- printf "%s.%s.%s" "http://prometheus-server" (include  "prometheus-service.namespace" .) "svc.cluster.local:80" }}
+        {{- printf "%s.%s.%s" "http://prometheus-server" (include  "splunk-sli-provider.namespace" .) "svc.cluster.local:80" }}
      {{- else }}
         {{- .Values.prometheus.endpoint }}
      {{- end }}

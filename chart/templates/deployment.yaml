@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "prometheus-service.fullname" . }}
+  name: {{ include "splunk-sli-provider.fullname" . }}
   labels:
-    {{- include "prometheus-service.labels" . | nindent 4 }}
+    {{- include "splunk-sli-provider.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "prometheus-service.selectorLabels" . | nindent 6 }}
+      {{- include "splunk-sli-provider.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,17 +18,17 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "prometheus-service.labels" . | nindent 8 }}
+        {{- include "splunk-sli-provider.labels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "prometheus-service.serviceAccountName" . }}
+      serviceAccountName: {{ include "splunk-sli-provider.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: prometheus-service
+        - name: splunk-sli-provider
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -50,26 +50,26 @@ spec:
           env:
             - name: METRICS_SCRAPE_PATH
               value: '/metrics'
-            - name: PROMETHEUS_NS
-              value: '{{- include "prometheus-service.namespace" . }}'
-            - name: PROMETHEUS_CM
-              value: 'prometheus-server'
-            - name: PROMETHEUS_LABELS
+            - name: SPLUNK_NS
+              value: '{{- include "splunk-sli-provider.namespace" . }}'
+            - name: SPLUNK_CM
+              value: 'splunk-server'
+            - name: SPLUNK_LABELS
               value: 'component=server'
             - name: HEALTH_ENDPOINT_PORT
               value: '8081'
-            - name: PROMETHEUS_ENDPOINT
-              value: "{{ include "prometheus-service.endpoint" . }}"
-            - name: PROMETHEUS_CONFIG_FILENAME
-              value: 'prometheus.yml'
+            - name: SPLUNK_ENDPOINT
+              value: "{{ include "splunk-sli-provider.endpoint" . }}"
+            - name: SPLUNK_CONFIG_FILENAME
+              value: 'splunk.yml'
             - name: ALERT_MANAGER_CONFIG_FILENAME
               value: 'alertmanager.yml'
             - name: ALERT_MANAGER_CM
-              value: 'prometheus-alertmanager'
+              value: 'splunk-alertmanager'
             - name: ALERT_MANAGER_LABELS
               value: 'component=alertmanager'
             - name: ALERT_MANAGER_NS
-              value: '{{- include "prometheus-am-service.namespace" . }}'
+              value: '{{- include "splunk-am-service.namespace" . }}'
             - name: ALERT_MANAGER_TEMPLATE_CM
               value: 'alertmanager-templates'
             - name: POD_NAMESPACE
@@ -77,11 +77,11 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: SCRAPE_INTERVAL
-              value: '{{ ((.Values.prometheus).scrapeInterval) | default "5s" }}'
+              value: '{{ ((.Values.splunk).scrapeInterval) | default "5s" }}'
             - name: CREATE_TARGETS
-              value: '{{ ((.Values.prometheus).createTargets) | default "true" }}'
+              value: '{{ ((.Values.splunk).createTargets) | default "true" }}'
             - name: CREATE_ALERTS
-              value: '{{ ((.Values.prometheus).createAlerts) | default "true" }}'
+              value: '{{ ((.Values.splunk).createAlerts) | default "true" }}'
             - name: PUBSUB_TOPIC
               value: {{ ((.Values).subscription).pubsubTopic | default "sh.keptn.>" }}
             - name: K8S_DEPLOYMENT_NAME

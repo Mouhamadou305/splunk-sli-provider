@@ -64,10 +64,10 @@ func main() {
 
 	log.Fatal(sdk.NewKeptn(
 		serviceName,
-		sdk.WithTaskHandler(
-			monitoringTriggeredEvent,
-			eventhandling.NewConfigureMonitoringEventHandler(),
-			splunkTypeFilter),
+		// sdk.WithTaskHandler(
+		// 	monitoringTriggeredEvent,
+		// 	eventhandling.NewConfigureMonitoringEventHandler(),
+		// 	splunkTypeFilter),
 		sdk.WithTaskHandler(
 			getSliTriggeredEvent,
 			eventhandling.NewGetSliEventHandler(*kubeClient),
