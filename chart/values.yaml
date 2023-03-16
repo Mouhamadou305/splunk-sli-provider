@@ -1,11 +1,11 @@
-# Default values for prometheus-service.
+# Default values for splunk-sli-provider.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
 
 image:
-  repository: Mouhamadou305/splunk-sli-provider
+  repository: kuro08/splunk-sli-provider
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -13,18 +13,18 @@ image:
 subscription:
   pubsubTopic: "sh.keptn.event.monitoring.configure,sh.keptn.event.get-sli.triggered" # Sets the events the service subscribes to
 
-# Prometheus specific configuration
-prometheus:
-  namespace: ""                              # K8s namespace where prometheus is installed
-  namespace_am: ""                           # K8s namespace where prometheus-alertmanager is installed
-  endpoint: ""                               # HTTP Endpoint for Prometheus
-  scrapeInterval: 5s                         # Prometheus scrape interval. Value is a time duration expressed as a sequence of decimal numbers followed by unit suffixes such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
-  createTargets: true                        # Enables the automatic creation of Prometheus targets (disable if you want to create targets manually)
-  createAlerts: true                         # Enables the automatic creation of Prometheus alerts (cannot be true if createTargets is false)
-  autodetect: true                           # Enable of the auto-detection of the Prometheus installation
-  autodetect_am: true                        # Enable of the auto-detection of the Prometheus Alertmanager installation
+# Splunk specific configuration
+splunk:
+  namespace: ""                              # K8s namespace where splunk is installed
+  namespace_am: ""                           # K8s namespace where splunk-alertmanager is installed
+  endpoint: ""                               # HTTP Endpoint for Splunk
+  scrapeInterval: 5s                         # Splunk scrape interval. Value is a time duration expressed as a sequence of decimal numbers followed by unit suffixes such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+  createTargets: true                        # Enables the automatic creation of Splunk targets (disable if you want to create targets manually)
+  createAlerts: true                         # Enables the automatic creation of Splunk alerts (cannot be true if createTargets is false)
+  autodetect: true                           # Enable of the auto-detection of the Splunk installation
+  autodetect_am: true                        # Enable of the auto-detection of the Splunk Alertmanager installation
 
-# Note: Remote Control Plane is currently not supported by prometheus-service - please keep this setting disabled
+# Note: Remote Control Plane is currently not supported by splunk-service - please keep this setting disabled
 remoteControlPlane:
   enabled: false                             # Enables remote execution plane mode
   api:
@@ -46,7 +46,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "keptn-prometheus-service"
+  name: "keptn-splunk-sli-provider"
 
 podAnnotations: {}
 

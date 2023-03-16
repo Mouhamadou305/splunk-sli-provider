@@ -1,7 +1,7 @@
 # Use the offical Golang image to create a build artifact.
 # This is based on Debian and sets the GOPATH to /go.
 # https://hub.docker.com/_/golang
-FROM golang:1.17.5-alpine as builder
+FROM golang:1.19-alpine as builder
 RUN apk add --no-cache gcc libc-dev git
 
 ARG version=develop
@@ -29,7 +29,8 @@ ARG SKAFFOLD_GO_GCFLAGS
 
 # Build the command inside the container.
 # (You may fetch or manage dependencies here, either manually or with a tool like "godep".)
-RUN GOOS=linux go build -ldflags '-linkmode=external' -gcflags="${SKAFFOLD_GO_GCFLAGS}" -v -o splunk-sli-provider
+# RUN GOOS=linux go build -ldflags '-linkmode=external' -gcflags="${SKAFFOLD_GO_GCFLAGS}" -v -o splunk-sli-provider
+RUN go build -o splunk-sli-provider
 
 # Use a Docker multi-stage build to create a lean production image.
 # https://docs.docker.com/develop/develop-images/multistage-build/#use-multi-stage-builds
@@ -60,7 +61,7 @@ COPY requirements.txt /
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the binary to the production image from the builder stage.
-COPY --from=builder /go/src/github.com/keptn-contrib/splunk-sli-provider/splunk-sli-provider /splunk-sli-provider
+COPY --from=builder /go/src/github.com/Mouhamadou305/splunk-sli-provider/splunk-sli-provider /splunk-sli-provider
 
 # required for external tools to detect this as a go binary
 ENV GOTRACEBACK=all

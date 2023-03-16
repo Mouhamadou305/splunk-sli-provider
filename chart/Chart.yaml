@@ -1,6 +1,6 @@
 apiVersion: v2
-name: prometheus-service
-description: A Helm chart for Keptn's prometheus-service
+name: splunk-sli-provider
+description: A Helm chart for Keptn's splunk-sli-provider
 
 # A chart can be either an 'application' or a 'library' chart.
 #

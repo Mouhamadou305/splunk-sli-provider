@@ -59,65 +59,65 @@ keptn-splunk-sli-provider
 
 
 {{/*
-Helper functions for auto detecting Prometheus namespace
+Helper functions for auto detecting Splunk namespace
 */}}
 {{- define "splunk-sli-provider.namespace" -}}
     {{- /* Check if autodetect is set */ -}}
-    {{- if and (.Values.prometheus.autodetect) (eq .Values.prometheus.namespace "") }}
-        {{- $detectedPrometheusServer := list }}
-
-        {{- /* Find prometheus-server service */ -}}
+    {{- if and (.Values.splunk.autodetect) (eq .Values.splunk.namespace "") }}
+        {{- $detectedSplunkServer := list }}
+        
+        {{- /* Find splunk-server service */ -}}
         {{- $services := lookup "v1" "Service" "" "" }}
         {{- range $index, $srv := $services.items }}
-            {{- if (eq "prometheus-server" $srv.metadata.name ) }}
-                {{- $detectedPrometheusServer = append $detectedPrometheusServer $srv }}
+            {{- if (eq "splunk-server" $srv.metadata.name ) }}
+                {{- $detectedSplunkServer = append $detectedSplunkServer $srv }}
             {{- end }}
         {{- end }}
 
-        {{- if eq (len $detectedPrometheusServer) 0 }}
-            {{- fail (printf "Unable to detect Prometheus in the kubernetes cluster!") }}
-        {{- else if gt (len $detectedPrometheusServer) 1 }}
-            {{- fail (printf "Detected more than one Prometheus installation: %+v" $detectedPrometheusServer) }}
+        {{- if eq (len $detectedSplunkServer) 0 }}
+            {{- fail (printf "Unable to detect Splunk in the kubernetes cluster!") }}
+        {{- else if gt (len $detectedSplunkServer) 1 }}
+            {{- fail (printf "Detected more than one Splunk installation: %+v" $detectedSplunkServer) }}
         {{ else }}
-            {{- (index $detectedPrometheusServer 0).metadata.namespace }}
+            {{- (index $detectedSplunkServer 0).metadata.namespace }}
         {{- end }}
     {{- else }}
-        {{- .Values.prometheus.namespace }}
+        {{- .Values.splunk.namespace }}
     {{- end }}
 {{- end }}
 
 {{/*
-Helper functions for auto detecting Prometheus alertmanager namespace
+Helper functions for auto detecting Splunk alertmanager namespace
 */}}
-{{- define "prometheus-am-service.namespace" -}}
+{{- define "splunk-am-service.namespace" -}}
     {{- /* Check if autodetect is set */ -}}
-    {{- if and (.Values.prometheus.autodetect_am) (eq .Values.prometheus.namespace_am "") }}
-        {{- $detectedPrometheusServer := list }}
+    {{- if and (.Values.splunk.autodetect_am) (eq .Values.splunk.namespace_am "") }}
+        {{- $detectedSplunkServer := list }}
 
-        {{- /* Find prometheus-alertmanager service */ -}}
+        {{- /* Find splunk-alertmanager service */ -}}
         {{- $services := lookup "v1" "Service" "" "" }}
         {{- range $index, $srv := $services.items }}
-            {{- if (eq "prometheus-alertmanager" $srv.metadata.name ) }}
-                {{- $detectedPrometheusServer = append $detectedPrometheusServer $srv }}
+            {{- if (eq "splunk-alertmanager" $srv.metadata.name ) }}
+                {{- $detectedSplunkServer = append $detectedSplunkServer $srv }}
             {{- end }}
         {{- end }}
 
-        {{- if eq (len $detectedPrometheusServer) 0 }}
-            {{- fail (printf "Unable to detect Prometheus Alertmanager in the kubernetes cluster!") }}
-        {{- else if gt (len $detectedPrometheusServer) 1 }}
-            {{- fail (printf "Detected more than one Prometheus Alertmanager installation: %+v" $detectedPrometheusServer) }}
+        {{- if eq (len $detectedSplunkServer) 0 }}
+            {{- fail (printf "Unable to detect Splunk Alertmanager in the kubernetes cluster!") }}
+        {{- else if gt (len $detectedSplunkServer) 1 }}
+            {{- fail (printf "Detected more than one Splunk Alertmanager installation: %+v" $detectedSplunkServer) }}
         {{- else }}
-            {{- (index $detectedPrometheusServer 0).metadata.namespace }}
+            {{- (index $detectedSplunkServer 0).metadata.namespace }}
         {{- end }}
     {{- else }}
-        {{- .Values.prometheus.namespace_am }}
+        {{- .Values.splunk.namespace_am }}
     {{- end }}
 {{- end }}
 
 {{- define "splunk-sli-provider.endpoint" }}
-     {{- if and (.Values.prometheus.autodetect) (eq .Values.prometheus.endpoint "") }}
-        {{- printf "%s.%s.%s" "http://prometheus-server" (include  "splunk-sli-provider.namespace" .) "svc.cluster.local:80" }}
+     {{- if and (.Values.splunk.autodetect) (eq .Values.splunk.endpoint "") }}
+        {{- printf "%s.%s.%s" "http://splunk-server" (include  "splunk-sli-provider.namespace" .) "svc.cluster.local:80" }}
      {{- else }}
-        {{- .Values.prometheus.endpoint }}
+        {{- .Values.splunk.endpoint }}
      {{- end }}
 {{- end }}

@@ -1,0 +1,88 @@
+# Default values for prometheus-service.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: kuro08/splunk-sli-provider
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+subscription:
+  pubsubTopic: "sh.keptn.event.monitoring.configure,sh.keptn.event.get-sli.triggered" # Sets the events the service subscribes to
+
+# Prometheus specific configuration
+prometheus:
+  namespace: ""                              # K8s namespace where prometheus is installed
+  namespace_am: ""                           # K8s namespace where prometheus-alertmanager is installed
+  endpoint: ""                               # HTTP Endpoint for Prometheus
+  scrapeInterval: 5s                         # Prometheus scrape interval. Value is a time duration expressed as a sequence of decimal numbers followed by unit suffixes such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+  createTargets: true                        # Enables the automatic creation of Prometheus targets (disable if you want to create targets manually)
+  createAlerts: true                         # Enables the automatic creation of Prometheus alerts (cannot be true if createTargets is false)
+  autodetect: true                           # Enable of the auto-detection of the Prometheus installation
+  autodetect_am: true                        # Enable of the auto-detection of the Prometheus Alertmanager installation
+
+# Note: Remote Control Plane is currently not supported by prometheus-service - please keep this setting disabled
+remoteControlPlane:
+  enabled: false                             # Enables remote execution plane mode
+  api:
+    protocol: "https"                        # Used Protocol (http, https)
+    hostname: ""                             # Hostname of the control plane cluster (and Port)
+    apiValidateTls: true                     # Defines if the control plane certificate should be validated
+    token: ""                                # Keptn API Token
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Specifies whether RBAC should be created
+  createRBAC: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "keptn-prometheus-service"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources: # Resource limits and requests
+  limits:
+    cpu: 500m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 32Mi
+
+# Note: We don't recommend turning on auto-scaling
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
